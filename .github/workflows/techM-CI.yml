@@ -1,0 +1,46 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+
+    - name: Run FoD SAST Scan
+      uses: fortify/github-action@v1
+      with:
+        sast-scan: true
+      env:
+        FOD_URL: https://ams.fortify.com
+        FOD_TENANT: ${{secrets.FOD_TENANT}}
+        FOD_USER: ${{secrets.FOD_USER}}
+        FOD_PASSWORD: ${{secrets.FOD_PAT}}
+        # EXTRA_FOD_LOGIN_OPTS: --socket-timeout=60s
+        # FOD_RELEASE: MyApp:MyRelease
+        # EXTRA_PACKAGE_OPTS: -oss
+        # DO_WAIT: true
+        DO_EXPORT: true
